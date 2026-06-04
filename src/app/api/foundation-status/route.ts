@@ -1,28 +1,64 @@
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-
-import prisma from '@/lib/prisma/client';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type FoundationCountRow = {
+type FoundationCount = {
   label: string;
   count: number;
 };
 
+const foundationTables = [
+  'seasons',
+  'leagues',
+  'clubs',
+  'xp_level_thresholds',
+  'platform_settings',
+] as const;
+
+async function getFoundationCounts(): Promise<FoundationCount[]> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is not configured.');
+  }
+
+  if (!serviceRoleKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured.');
+  }
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+
+  const counts: FoundationCount[] = [];
+
+  for (const table of foundationTables) {
+    const { count, error } = await supabase
+      .from(table)
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      throw new Error(`${table}: ${error.message}`);
+    }
+
+    counts.push({
+      label: table,
+      count: count ?? 0,
+    });
+  }
+
+  return counts;
+}
+
 export async function GET() {
   try {
-    const rows = await prisma.$queryRaw<FoundationCountRow[]>`
-      SELECT 'seasons' AS label, count(*)::int AS count FROM public.seasons
-      UNION ALL
-      SELECT 'leagues' AS label, count(*)::int AS count FROM public.leagues
-      UNION ALL
-      SELECT 'clubs' AS label, count(*)::int AS count FROM public.clubs
-      UNION ALL
-      SELECT 'xp_level_thresholds' AS label, count(*)::int AS count FROM public.xp_level_thresholds
-      UNION ALL
-      SELECT 'platform_settings' AS label, count(*)::int AS count FROM public.platform_settings
-    `;
+    const counts = await getFoundationCounts();
 
     return NextResponse.json({
       status: 'ok',
@@ -32,8 +68,9 @@ export async function GET() {
         prisma: 'accepted',
         supabaseClient: 'accepted',
         appSurface: 'active',
+        productionReadPath: 'supabase-service-role-server-route',
       },
-      counts: rows,
+      counts,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown foundation status error';
@@ -42,6 +79,13 @@ export async function GET() {
       {
         status: 'error',
         service: 'community-premier-league',
+        foundation: {
+          database: 'requires-attention',
+          prisma: 'accepted',
+          supabaseClient: 'requires-attention',
+          appSurface: 'active',
+          productionReadPath: 'supabase-service-role-server-route',
+        },
         message,
       },
       { status: 500 },
