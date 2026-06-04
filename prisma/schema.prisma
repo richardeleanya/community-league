@@ -1,0 +1,789 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model audit_logs {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String?  @db.Uuid
+  action      String
+  entity_type String
+  entity_id   String?  @db.Uuid
+  old_values  Json?
+  new_values  Json?
+  ip_address  String?
+  user_agent  String?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  users       users?   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([action], map: "idx_audit_logs_action")
+  @@index([created_at(sort: Desc)], map: "idx_audit_logs_created")
+  @@index([entity_type, entity_id], map: "idx_audit_logs_entity")
+  @@index([user_id], map: "idx_audit_logs_user")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model awards {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  season_id           String              @db.Uuid
+  award_type          award_type_enum
+  winner_supporter_id String?             @db.Uuid
+  winner_club_id      String?             @db.Uuid
+  awarded_at          DateTime            @default(now()) @db.Timestamptz(6)
+  citation            String
+  is_published        Boolean             @default(false)
+  seasons             seasons             @relation(fields: [season_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clubs               clubs?              @relation(fields: [winner_club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supporter_profiles  supporter_profiles? @relation(fields: [winner_supporter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([season_id], map: "idx_awards_season")
+  @@index([award_type], map: "idx_awards_type")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model club_news {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  club_id         String    @db.Uuid
+  author_id       String    @db.Uuid
+  title           String
+  slug            String    @unique
+  content         String
+  cover_image_url String?
+  is_published    Boolean   @default(false)
+  published_at    DateTime? @db.Timestamptz(6)
+  views_count     Int       @default(0)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime  @default(now()) @db.Timestamptz(6)
+  users           users     @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clubs           clubs     @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([club_id], map: "idx_club_news_club")
+  @@index([club_id, is_published, published_at(sort: Desc)], map: "idx_club_news_published")
+  @@index([slug], map: "idx_club_news_slug")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model clubs {
+  id                                      String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                                    String
+  short_name                              String
+  slug                                    String                @unique
+  country                                 String
+  league_id                               String                @db.Uuid
+  badge_url                               String?
+  primary_colour                          String
+  secondary_colour                        String
+  founded_year                            Int?
+  stadium_name                            String?
+  city                                    String
+  description                             String?
+  website_url                             String?
+  is_verified                             Boolean               @default(false)
+  is_active                               Boolean               @default(true)
+  total_supporters                        Int                   @default(0)
+  community_points_season                 Int                   @default(0)
+  community_points_alltime                Int                   @default(0)
+  legacy_score                            Int                   @default(0)
+  actions_completed_season                Int                   @default(0)
+  actions_completed_alltime               Int                   @default(0)
+  volunteer_hours_season                  Decimal               @default(0) @db.Decimal(10, 2)
+  trees_planted_season                    Int                   @default(0)
+  season_position                         Int?
+  season_wins                             Int                   @default(0)
+  season_draws                            Int                   @default(0)
+  season_losses                           Int                   @default(0)
+  season_points                           Int                   @default(0)
+  created_at                              DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at                              DateTime              @default(now()) @db.Timestamptz(6)
+  awards                                  awards[]
+  club_news                               club_news[]
+  leagues                                 leagues               @relation(fields: [league_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  community_actions                       community_actions[]
+  fixtures_fixtures_away_club_idToclubs   fixtures[]            @relation("fixtures_away_club_idToclubs")
+  fixtures_fixtures_home_club_idToclubs   fixtures[]            @relation("fixtures_home_club_idToclubs")
+  fixtures_fixtures_winner_club_idToclubs fixtures[]            @relation("fixtures_winner_club_idToclubs")
+  individual_rankings                     individual_rankings[]
+  league_tables                           league_tables[]
+  legacy_map_pins                         legacy_map_pins[]
+  legacy_projects                         legacy_projects[]
+  penalties                               penalties[]
+  supporter_profiles                      supporter_profiles[]
+
+  @@index([community_points_season(sort: Desc)], map: "idx_clubs_community_points_season")
+  @@index([country], map: "idx_clubs_country")
+  @@index([is_active], map: "idx_clubs_is_active")
+  @@index([league_id], map: "idx_clubs_league_id")
+  @@index([slug], map: "idx_clubs_slug")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model community_actions {
+  id                             String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supporter_id                   String                   @db.Uuid
+  club_id                        String                   @db.Uuid
+  mission_id                     String?                  @db.Uuid
+  fixture_id                     String?                  @db.Uuid
+  season_id                      String                   @db.Uuid
+  action_type                    action_type_enum
+  action_category                action_category_enum
+  description                    String
+  photo_urls                     String[]                 @default([])
+  gps_latitude                   Decimal                  @db.Decimal(10, 7)
+  gps_longitude                  Decimal                  @db.Decimal(10, 7)
+  gps_accuracy_metres            Decimal                  @db.Decimal(8, 2)
+  gps_location_name              String?
+  submitted_at                   DateTime                 @default(now()) @db.Timestamptz(6)
+  action_date                    DateTime                 @db.Timestamptz(6)
+  verification_status            verification_status_enum @default(pending)
+  verification_tier              verification_tier_enum
+  verified_at                    DateTime?                @db.Timestamptz(6)
+  verified_by                    String?                  @db.Uuid
+  rejection_reason               String?
+  base_points                    Int
+  multiplier_applied             Decimal                  @default(1.0) @db.Decimal(3, 1)
+  final_points_awarded           Int                      @default(0)
+  xp_awarded                     Int                      @default(0)
+  legacy_points_awarded          Int                      @default(0)
+  volunteer_hours                Decimal                  @default(0) @db.Decimal(5, 2)
+  trees_count                    Int                      @default(0)
+  food_items_count               Int                      @default(0)
+  ai_analysis_score              Decimal?                 @db.Decimal(5, 4)
+  ai_flags                       String[]
+  fraud_score                    Int                      @default(0)
+  duplicate_hash                 String?
+  device_fingerprint             String?
+  ip_address                     String?
+  ip_country                     String?
+  is_fraudulent                  Boolean                  @default(false)
+  fraud_reason                   String?
+  peer_validations_required      Int                      @default(0)
+  peer_validations_received      Int                      @default(0)
+  peer_validations_approved      Int                      @default(0)
+  peer_validations_rejected      Int                      @default(0)
+  institution_name               String?
+  institution_contact            String?
+  institution_verification_token String?                  @unique
+  institution_verified           Boolean                  @default(false)
+  institution_verified_at        DateTime?                @db.Timestamptz(6)
+  created_at                     DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at                     DateTime                 @default(now()) @db.Timestamptz(6)
+  clubs                          clubs                    @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  fixtures                       fixtures?                @relation(fields: [fixture_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  missions                       missions?                @relation(fields: [mission_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  seasons                        seasons                  @relation(fields: [season_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supporter_profiles             supporter_profiles       @relation(fields: [supporter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                          users?                   @relation(fields: [verified_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  fraud_reports                  fraud_reports[]
+  peer_validations               peer_validations[]
+
+  @@index([action_date(sort: Desc)], map: "idx_community_actions_action_date")
+  @@index([club_id], map: "idx_community_actions_club_id")
+  @@index([fixture_id], map: "idx_community_actions_fixture_id")
+  @@index([fraud_score(sort: Desc)], map: "idx_community_actions_fraud_score")
+  @@index([mission_id], map: "idx_community_actions_mission_id")
+  @@index([season_id], map: "idx_community_actions_season_id")
+  @@index([submitted_at(sort: Desc)], map: "idx_community_actions_submitted_at")
+  @@index([supporter_id], map: "idx_community_actions_supporter_id")
+  @@index([verification_status], map: "idx_community_actions_verification_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model fixtures {
+  id                                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  season_id                            String              @db.Uuid
+  league_id                            String              @db.Uuid
+  home_club_id                         String              @db.Uuid
+  away_club_id                         String              @db.Uuid
+  match_date                           DateTime            @db.Timestamptz(6)
+  match_week                           Int
+  fixture_type                         fixture_type_enum
+  point_multiplier                     Decimal             @default(1.0) @db.Decimal(3, 1)
+  status                               fixture_status_enum @default(upcoming)
+  home_community_points                Int                 @default(0)
+  away_community_points                Int                 @default(0)
+  home_actions_count                   Int                 @default(0)
+  away_actions_count                   Int                 @default(0)
+  winner_club_id                       String?             @db.Uuid
+  is_draw                              Boolean             @default(false)
+  mission_week_active                  Boolean             @default(false)
+  mission_start_at                     DateTime?           @db.Timestamptz(6)
+  mission_end_at                       DateTime?           @db.Timestamptz(6)
+  created_at                           DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at                           DateTime            @default(now()) @db.Timestamptz(6)
+  community_actions                    community_actions[]
+  clubs_fixtures_away_club_idToclubs   clubs               @relation("fixtures_away_club_idToclubs", fields: [away_club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clubs_fixtures_home_club_idToclubs   clubs               @relation("fixtures_home_club_idToclubs", fields: [home_club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  leagues                              leagues             @relation(fields: [league_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  seasons                              seasons             @relation(fields: [season_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clubs_fixtures_winner_club_idToclubs clubs?              @relation("fixtures_winner_club_idToclubs", fields: [winner_club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  missions                             missions[]
+
+  @@index([away_club_id], map: "idx_fixtures_away_club_id")
+  @@index([home_club_id], map: "idx_fixtures_home_club_id")
+  @@index([league_id], map: "idx_fixtures_league_id")
+  @@index([match_date], map: "idx_fixtures_match_date")
+  @@index([season_id], map: "idx_fixtures_season_id")
+  @@index([status], map: "idx_fixtures_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model fraud_reports {
+  id                                          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reported_action_id                          String?            @db.Uuid
+  reported_user_id                            String?            @db.Uuid
+  reporting_supporter_id                      String             @db.Uuid
+  report_type                                 report_type_enum
+  description                                 String
+  evidence_urls                               String[]
+  status                                      report_status_enum @default(open)
+  reviewed_by                                 String?            @db.Uuid
+  resolved_at                                 DateTime?          @db.Timestamptz(6)
+  resolution_notes                            String?
+  created_at                                  DateTime           @default(now()) @db.Timestamptz(6)
+  community_actions                           community_actions? @relation(fields: [reported_action_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_fraud_reports_reported_user_idTousers users?             @relation("fraud_reports_reported_user_idTousers", fields: [reported_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supporter_profiles                          supporter_profiles @relation(fields: [reporting_supporter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_fraud_reports_reviewed_byTousers      users?             @relation("fraud_reports_reviewed_byTousers", fields: [reviewed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([reported_action_id], map: "idx_fraud_reports_reported_action")
+  @@index([reported_user_id], map: "idx_fraud_reports_reported_user")
+  @@index([reporting_supporter_id], map: "idx_fraud_reports_reporting_supporter")
+  @@index([status], map: "idx_fraud_reports_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model individual_rankings {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  season_id          String             @db.Uuid
+  supporter_id       String             @db.Uuid
+  club_id            String             @db.Uuid
+  rank_overall       Int?
+  rank_in_club       Int?
+  rank_by_category   Json?
+  community_points   Int                @default(0)
+  legacy_score       Int                @default(0)
+  actions_count      Int                @default(0)
+  volunteer_hours    Decimal            @default(0) @db.Decimal(10, 2)
+  trees_planted      Int                @default(0)
+  food_donated       Int                @default(0)
+  updated_at         DateTime           @default(now()) @db.Timestamptz(6)
+  clubs              clubs              @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  seasons            seasons            @relation(fields: [season_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supporter_profiles supporter_profiles @relation(fields: [supporter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([season_id, supporter_id], map: "uq_individual_rankings_season_supporter")
+  @@index([club_id], map: "idx_individual_rankings_club")
+  @@index([season_id, club_id, rank_in_club], map: "idx_individual_rankings_in_club")
+  @@index([season_id, rank_overall], map: "idx_individual_rankings_overall")
+  @@index([season_id, community_points(sort: Desc)], map: "idx_individual_rankings_points")
+  @@index([season_id], map: "idx_individual_rankings_season")
+  @@index([supporter_id], map: "idx_individual_rankings_supporter")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model league_tables {
+  id                        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  season_id                 String   @db.Uuid
+  league_id                 String   @db.Uuid
+  club_id                   String   @db.Uuid
+  position                  Int
+  played                    Int      @default(0)
+  won                       Int      @default(0)
+  drawn                     Int      @default(0)
+  lost                      Int      @default(0)
+  community_tasks_completed Int      @default(0)
+  community_points_for      Int      @default(0)
+  community_points_against  Int      @default(0)
+  community_difference      Int      @default(0)
+  points                    Int      @default(0)
+  form                      String[] @default([])
+  updated_at                DateTime @default(now()) @db.Timestamptz(6)
+  clubs                     clubs    @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  leagues                   leagues  @relation(fields: [league_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  seasons                   seasons  @relation(fields: [season_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([season_id, league_id, club_id], map: "uq_league_tables_season_league_club")
+  @@index([club_id], map: "idx_league_tables_club")
+  @@index([season_id, league_id, points(sort: Desc), community_difference(sort: Desc)], map: "idx_league_tables_points")
+  @@index([season_id, league_id, position], map: "idx_league_tables_position")
+  @@index([season_id, league_id], map: "idx_league_tables_season_league")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model leagues {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String
+  display_name     String
+  slug             String          @unique
+  country          String
+  tier             Int
+  season_id        String          @db.Uuid
+  logo_url         String?
+  primary_colour   String
+  is_active        Boolean         @default(true)
+  max_clubs        Int             @default(20)
+  promotion_spots  Int             @default(3)
+  relegation_spots Int             @default(3)
+  created_at       DateTime        @default(now()) @db.Timestamptz(6)
+  clubs            clubs[]
+  fixtures         fixtures[]
+  league_tables    league_tables[]
+  seasons          seasons         @relation(fields: [season_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([country], map: "idx_leagues_country")
+  @@index([is_active], map: "idx_leagues_is_active")
+  @@index([season_id], map: "idx_leagues_season_id")
+  @@index([slug], map: "idx_leagues_slug")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model legacy_map_pins {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  club_id     String           @db.Uuid
+  action_type action_type_enum
+  latitude    Decimal          @db.Decimal(10, 7)
+  longitude   Decimal          @db.Decimal(10, 7)
+  count       Int              @default(1)
+  description String?
+  created_at  DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime         @default(now()) @db.Timestamptz(6)
+  clubs       clubs            @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([action_type], map: "idx_legacy_map_pins_action_type")
+  @@index([latitude, longitude, action_type, club_id], map: "idx_legacy_map_pins_bbox")
+  @@index([club_id], map: "idx_legacy_map_pins_club")
+  @@index([latitude, longitude], map: "idx_legacy_map_pins_location")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model legacy_projects {
+  id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  club_id                String              @db.Uuid
+  season_id              String              @db.Uuid
+  project_type           project_type_enum
+  title                  String
+  description            String
+  location_name          String
+  location_lat           Decimal?            @db.Decimal(10, 7)
+  location_lng           Decimal?            @db.Decimal(10, 7)
+  status                 project_status_enum @default(proposed)
+  legacy_score_threshold Int
+  current_legacy_score   Int                 @default(0)
+  completion_date        DateTime?           @db.Date
+  cover_image_url        String?
+  gallery_urls           String[]
+  council_partner        String?
+  sponsor_partner        String?
+  created_at             DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime            @default(now()) @db.Timestamptz(6)
+  clubs                  clubs               @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  seasons                seasons             @relation(fields: [season_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([club_id], map: "idx_legacy_projects_club")
+  @@index([season_id], map: "idx_legacy_projects_season")
+  @@index([status], map: "idx_legacy_projects_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model missions {
+  id                         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fixture_id                 String?                @db.Uuid
+  title                      String
+  description                String
+  action_category            action_category_enum
+  action_type                action_type_enum
+  base_points                Int
+  base_xp                    Int
+  multiplier_override        Decimal?               @db.Decimal(3, 1)
+  verification_tier_required verification_tier_enum
+  max_completions_per_user   Int?
+  max_completions_total      Int?
+  completions_count          Int                    @default(0)
+  start_date                 DateTime               @db.Timestamptz(6)
+  end_date                   DateTime               @db.Timestamptz(6)
+  is_active                  Boolean                @default(true)
+  created_at                 DateTime               @default(now()) @db.Timestamptz(6)
+  community_actions          community_actions[]
+  fixtures                   fixtures?              @relation(fields: [fixture_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([action_type], map: "idx_missions_action_type")
+  @@index([fixture_id], map: "idx_missions_fixture_id")
+  @@index([is_active], map: "idx_missions_is_active")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model notifications {
+  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String                 @db.Uuid
+  type       notification_type_enum
+  title      String
+  body       String
+  link       String?
+  is_read    Boolean                @default(false)
+  created_at DateTime               @default(now()) @db.Timestamptz(6)
+  users      users                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_notifications_user")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model peer_validations {
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  action_id              String                 @db.Uuid
+  validator_supporter_id String                 @db.Uuid
+  validation_result      validation_result_enum
+  notes                  String?
+  assigned_at            DateTime               @default(now()) @db.Timestamptz(6)
+  responded_at           DateTime?              @db.Timestamptz(6)
+  expires_at             DateTime               @db.Timestamptz(6)
+  created_at             DateTime               @default(now()) @db.Timestamptz(6)
+  community_actions      community_actions      @relation(fields: [action_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  supporter_profiles     supporter_profiles     @relation(fields: [validator_supporter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([action_id, validator_supporter_id], map: "uq_peer_validations_action_validator")
+  @@index([action_id], map: "idx_peer_validations_action_id")
+  @@index([validator_supporter_id], map: "idx_peer_validations_validator_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model penalties {
+  id                                        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                                   String             @db.Uuid
+  club_id                                   String?            @db.Uuid
+  penalty_type                              penalty_type_enum
+  reason                                    String
+  points_deducted                           Int                @default(0)
+  suspension_days                           Int?
+  issued_by                                 String             @db.Uuid
+  issued_at                                 DateTime           @default(now()) @db.Timestamptz(6)
+  expires_at                                DateTime?          @db.Timestamptz(6)
+  is_active                                 Boolean            @default(true)
+  appeal_status                             appeal_status_enum @default(none)
+  appeal_submitted_at                       DateTime?          @db.Timestamptz(6)
+  appeal_resolved_by                        String?            @db.Uuid
+  appeal_resolution_notes                   String?
+  users_penalties_appeal_resolved_byTousers users?             @relation("penalties_appeal_resolved_byTousers", fields: [appeal_resolved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clubs                                     clubs?             @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_penalties_issued_byTousers          users              @relation("penalties_issued_byTousers", fields: [issued_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_penalties_user_idTousers            users              @relation("penalties_user_idTousers", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_penalties_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model platform_settings {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key         String   @unique
+  value       Json
+  description String?
+  updated_by  String?  @db.Uuid
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+  users       users?   @relation(fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([key], map: "idx_platform_settings_key")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model seasons {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String
+  slug                String                @unique
+  start_date          DateTime              @db.Date
+  end_date            DateTime              @db.Date
+  is_current          Boolean               @default(false)
+  is_completed        Boolean               @default(false)
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  awards              awards[]
+  community_actions   community_actions[]
+  fixtures            fixtures[]
+  individual_rankings individual_rankings[]
+  league_tables       league_tables[]
+  leagues             leagues[]
+  legacy_projects     legacy_projects[]
+
+  @@index([is_current], map: "idx_seasons_is_current")
+  @@index([slug], map: "idx_seasons_slug")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model supporter_profiles {
+  id                       String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                  String                @unique @db.Uuid
+  display_name             String
+  username                 String                @unique
+  avatar_url               String?
+  bio                      String?
+  club_id                  String?               @db.Uuid
+  club_joined_at           DateTime?             @db.Timestamptz(6)
+  specialist_path          specialist_path_enum?
+  specialist_path_set_at   DateTime?             @db.Timestamptz(6)
+  current_level            Int                   @default(1)
+  current_xp               Int                   @default(0)
+  total_xp_ever            Int                   @default(0)
+  community_points_season  Int                   @default(0)
+  community_points_alltime Int                   @default(0)
+  legacy_score             Int                   @default(0)
+  volunteer_hours_total    Decimal               @default(0) @db.Decimal(10, 2)
+  trees_planted_total      Int                   @default(0)
+  food_donations_total     Int                   @default(0)
+  actions_completed_total  Int                   @default(0)
+  actions_completed_season Int                   @default(0)
+  streak_current_days      Int                   @default(0)
+  streak_longest_days      Int                   @default(0)
+  last_action_at           DateTime?             @db.Timestamptz(6)
+  location_city            String?
+  location_country         String                @default("GB")
+  is_public                Boolean               @default(true)
+  created_at               DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime              @default(now()) @db.Timestamptz(6)
+  awards                   awards[]
+  community_actions        community_actions[]
+  fraud_reports            fraud_reports[]
+  individual_rankings      individual_rankings[]
+  peer_validations         peer_validations[]
+  clubs                    clubs?                @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                    users                 @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([club_id], map: "idx_supporter_profiles_club_id")
+  @@index([community_points_alltime(sort: Desc)], map: "idx_supporter_profiles_community_points_alltime")
+  @@index([community_points_season(sort: Desc)], map: "idx_supporter_profiles_community_points_season")
+  @@index([current_level], map: "idx_supporter_profiles_current_level")
+  @@index([last_action_at(sort: Desc)], map: "idx_supporter_profiles_last_action")
+  @@index([legacy_score(sort: Desc)], map: "idx_supporter_profiles_legacy_score")
+  @@index([user_id], map: "idx_supporter_profiles_user_id")
+  @@index([username], map: "idx_supporter_profiles_username")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model users {
+  id                                                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                               String              @unique
+  email_verified                                      Boolean             @default(false)
+  password_hash                                       String
+  created_at                                          DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at                                          DateTime            @default(now()) @db.Timestamptz(6)
+  last_login_at                                       DateTime?           @db.Timestamptz(6)
+  account_status                                      account_status_enum @default(pending_verification)
+  is_admin                                            Boolean             @default(false)
+  is_moderator                                        Boolean             @default(false)
+  referral_code                                       String              @unique
+  referred_by                                         String?             @db.Uuid
+  email_verification_token                            String?             @unique
+  password_reset_token                                String?             @unique
+  email_verification_expires_at                       DateTime?           @db.Timestamptz(6)
+  password_reset_expires_at                           DateTime?           @db.Timestamptz(6)
+  failed_login_attempts                               Int                 @default(0)
+  locked_until                                        DateTime?           @db.Timestamptz(6)
+  notification_email_weekly                           Boolean             @default(true)
+  notification_email_actions                          Boolean             @default(true)
+  notification_email_security                         Boolean             @default(true)
+  audit_logs                                          audit_logs[]
+  club_news                                           club_news[]
+  community_actions                                   community_actions[]
+  fraud_reports_fraud_reports_reported_user_idTousers fraud_reports[]     @relation("fraud_reports_reported_user_idTousers")
+  fraud_reports_fraud_reports_reviewed_byTousers      fraud_reports[]     @relation("fraud_reports_reviewed_byTousers")
+  notifications                                       notifications[]
+  penalties_penalties_appeal_resolved_byTousers       penalties[]         @relation("penalties_appeal_resolved_byTousers")
+  penalties_penalties_issued_byTousers                penalties[]         @relation("penalties_issued_byTousers")
+  penalties_penalties_user_idTousers                  penalties[]         @relation("penalties_user_idTousers")
+  platform_settings                                   platform_settings[]
+  supporter_profiles                                  supporter_profiles?
+  users                                               users?              @relation("usersTousers", fields: [referred_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_users                                         users[]             @relation("usersTousers")
+
+  @@index([account_status], map: "idx_users_account_status")
+  @@index([email], map: "idx_users_email")
+  @@index([referral_code], map: "idx_users_referral_code")
+  @@index([referred_by], map: "idx_users_referred_by")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model xp_level_thresholds {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  level       Int      @unique
+  title       String
+  xp_required Int
+  badge_url   String?
+  colour      String
+  perks       String[]
+}
+
+enum account_status_enum {
+  active
+  suspended
+  banned
+  pending_verification
+}
+
+enum action_category_enum {
+  environment
+  social_care
+  youth_development
+  community_regeneration
+}
+
+enum action_type_enum {
+  litter_collection
+  recycling_activity
+  food_donation
+  tree_planting
+  volunteer_hour
+  blood_donation
+  event_leadership
+  youth_mentoring
+  elderly_assistance
+  homeless_outreach
+  playground_build
+  park_restoration
+  community_centre
+  coaching_session
+}
+
+enum appeal_status_enum {
+  none
+  pending
+  approved
+  rejected
+}
+
+enum award_type_enum {
+  community_golden_boot
+  community_playmaker
+  community_iron_man
+  community_green_boot
+  community_heart_award
+  community_rising_star
+  community_captain_year
+  legacy_ball
+  league_champions
+  community_club_year
+  community_green_club
+  community_heart_club
+  legacy_project_year
+}
+
+enum fixture_status_enum {
+  upcoming
+  active
+  completed
+  cancelled
+}
+
+enum fixture_type_enum {
+  league
+  cup
+  derby
+  continental
+  final
+}
+
+enum notification_type_enum {
+  action_approved
+  action_rejected
+  level_up
+  points_awarded
+  fixture_starting
+  mission_available
+  penalty_issued
+  peer_validation_needed
+  fraud_report_resolved
+  award_won
+  league_position_change
+  club_news
+  system_announcement
+}
+
+enum penalty_type_enum {
+  warning
+  point_deduction
+  account_suspension
+  club_penalty
+  permanent_ban
+}
+
+enum project_status_enum {
+  proposed
+  approved
+  in_progress
+  completed
+}
+
+enum project_type_enum {
+  youth_pitch
+  community_centre
+  playground
+  urban_forest
+  regeneration_scheme
+  community_garden
+}
+
+enum report_status_enum {
+  open
+  under_review
+  resolved_genuine
+  resolved_fraudulent
+  dismissed
+}
+
+enum report_type_enum {
+  duplicate_submission
+  fake_photo
+  wrong_location
+  coordinated_fraud
+  bot_activity
+  other
+}
+
+enum specialist_path_enum {
+  environmental_champion
+  community_hero
+  youth_mentor
+  legacy_builder
+}
+
+enum validation_result_enum {
+  approved
+  rejected
+  flagged
+}
+
+enum verification_status_enum {
+  pending
+  tier1_approved
+  tier2_approved
+  tier3_approved
+  rejected
+  flagged
+  under_review
+}
+
+enum verification_tier_enum {
+  tier_1
+  tier_2
+  tier_3
+}

@@ -1,0 +1,14 @@
+﻿node_modules/
+.next/
+.vercel/
+.env
+.env.*
+!.env.example
+*.log
+CL_BACKUPS/
+CL_RUNTIME/
+CL_REPORTS/
+CL_RELEASE_EVIDENCE/
+supabase/.temp/
+supabase/.branches/
+tsconfig.tsbuildinfo
