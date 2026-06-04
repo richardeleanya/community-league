@@ -1,39 +1,44 @@
-export const dynamic = 'force-dynamic';
-
-const discoverySignals = [
-  'Current season discovery',
-  'Active league discovery',
-  'Club selection cards',
-  'Verified club identity markers',
-  'Supporter onboarding handoff',
+const clubJourney = [
+  'Choose the club you want to support.',
+  'Open the supporter dashboard to see the competition position.',
+  'Follow active missions and submit verified community action.',
+  'Watch approved actions move the club table.',
 ];
 
-export default function ClubLeagueDiscoveryPage() {
+export default function ClubsPage() {
   return (
     <main className="main-shell">
       <section className="hero-panel" aria-labelledby="clubs-title">
         <header className="hero-panel__header">
-          <p className="eyebrow">CL-008 Club / League Discovery</p>
-          <h1 id="clubs-title">Find your club. Enter the league.</h1>
+          <p className="eyebrow">Club Discovery</p>
+          <h1 id="clubs-title">Find your club, then enter the action journey.</h1>
           <p className="hero-copy">
-            This surface turns the accepted onboarding foundation into a controlled discovery path:
-            current season, active league, club selection cards and readiness for supporter identity
-            assignment.
+            Clubs are the public competition anchor. Supporters do not just browse clubs; they
+            choose who they are backing, then move into missions, action submission, and the live
+            league table.
           </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <a className="primary-action" href="/dashboard">
+              Open supporter dashboard
+            </a>
+            <a className="secondary-action" href="/missions">
+              See active missions
+            </a>
+          </div>
         </header>
 
-        <section className="validation-panel" aria-label="Club and league discovery readiness">
+        <section className="validation-panel" aria-label="Club journey">
           <div>
-            <p className="eyebrow">Discovery Foundation</p>
-            <h2>League and club discovery is now represented as a live foundation service.</h2>
+            <p className="eyebrow">What happens after club selection</p>
+            <h2>The club page is the start of supporter participation.</h2>
             <p>
-              The live discovery API is available at /api/discovery-foundation and returns the
-              current season, active leagues, featured clubs, discovery counts and readiness checks.
+              The next step is clear: understand the club context, then move into dashboard and
+              missions so community activity can become verified points.
             </p>
           </div>
 
           <ul className="validation-list">
-            {discoverySignals.map((item) => (
+            {clubJourney.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>

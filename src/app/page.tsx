@@ -1,81 +1,106 @@
-import Link from 'next/link';
+const journeySteps = [
+  {
+    title: '1. Find a club',
+    text: 'Supporters start by choosing the club they want to back in the Community Premier League.',
+    href: '/clubs',
+  },
+  {
+    title: '2. Pick a mission',
+    text: 'Every mission explains the community action, proof needed, and how points can be earned.',
+    href: '/missions',
+  },
+  {
+    title: '3. Submit evidence',
+    text: 'Actions are submitted with a description, location context, and evidence for review.',
+    href: '/submit-action',
+  },
+  {
+    title: '4. Move the table',
+    text: 'Approved actions release points and update the club position on the live leaderboard.',
+    href: '/leaderboard',
+  },
+];
 
-import { createCommunityLeagueHomepageCompositionService } from '@/lib/homepage';
+const proofPoints = [
+  'Live Supabase-backed production foundation',
+  'Verified routes, APIs, and deployment evidence',
+  'Community actions connected to missions, points, XP, and league tables',
+];
 
-export const dynamic = 'force-dynamic';
-
-export default function CommunityLeagueHomepage() {
-  const service = createCommunityLeagueHomepageCompositionService();
-  const snapshot = service.getHomepageCompositionSnapshot();
-
+export default function HomePage() {
   return (
     <main className="main-shell">
-      <section className="hero-panel" aria-labelledby="homepage-title">
+      <section className="hero-panel" aria-labelledby="home-title">
         <header className="hero-panel__header">
-          <p className="eyebrow">{snapshot.hero.eyebrow}</p>
-          <h1 id="homepage-title">{snapshot.hero.title}</h1>
-          <p className="hero-copy">{snapshot.hero.summary}</p>
-
-          <div className="button-row" aria-label="Homepage primary actions">
-            <Link className="button-primary" href={snapshot.hero.primaryAction.href}>
-              {snapshot.hero.primaryAction.label}
-            </Link>
-            <Link className="button-secondary" href={snapshot.hero.secondaryAction.href}>
-              {snapshot.hero.secondaryAction.label}
-            </Link>
+          <p className="eyebrow">Community Premier League</p>
+          <h1 id="home-title">Community action becomes club competition.</h1>
+          <p className="hero-copy">
+            Community Premier League turns local good work into a live football-style table.
+            Supporters complete verified community missions, clubs earn points, and the league
+            table shows which communities are moving first.
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <a className="primary-action" href="/clubs">
+              Find your club
+            </a>
+            <a className="secondary-action" href="/missions">
+              View missions
+            </a>
           </div>
         </header>
 
-        <section className="validation-panel" aria-label="Public landing metrics">
+        <section className="validation-panel" aria-label="How the platform works">
           <div>
-            <p className="eyebrow">Public Landing Foundation</p>
-            <h2>Community action, league competition and proof are joined in one entry point.</h2>
-            <p>{snapshot.headline}</p>
+            <p className="eyebrow">First user journey</p>
+            <h2>Four simple steps: club, mission, evidence, points.</h2>
+            <p>
+              The platform is designed so a first-time visitor can understand what to do next
+              without needing training or an explanation from the founder.
+            </p>
           </div>
 
-          <div className="card-grid">
-            {snapshot.metrics.map((metric) => (
-              <article className="metric-card" key={metric.key}>
-                <p className="eyebrow">{metric.label}</p>
-                <h3>{metric.value}</h3>
-                <p>{metric.summary}</p>
-              </article>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1rem',
+              marginTop: '1.25rem',
+            }}
+          >
+            {journeySteps.map((step) => (
+              <a
+                key={step.title}
+                href={step.href}
+                style={{
+                  display: 'block',
+                  padding: '1rem',
+                  border: '1px solid rgba(148, 163, 184, 0.28)',
+                  borderRadius: '1rem',
+                  textDecoration: 'none',
+                }}
+              >
+                <strong>{step.title}</strong>
+                <p>{step.text}</p>
+              </a>
             ))}
           </div>
         </section>
 
-        <section className="validation-panel" aria-label="Community League journey">
+        <section className="validation-panel" aria-label="Launch proof">
           <div>
-            <p className="eyebrow">Supporter Journey</p>
-            <h2>From club discovery to verified action and league position.</h2>
+            <p className="eyebrow">Why it is credible</p>
+            <h2>Built as a live, evidence-backed competition platform.</h2>
+            <p>
+              This is not a static campaign page. It is a deployed product foundation with
+              production routes, APIs, evidence packs, and operational launch checks.
+            </p>
           </div>
 
           <ul className="validation-list">
-            {snapshot.journeyCards.map((card) => (
-              <li key={card.key}>
-                <Link href={card.href}>
-                  Step {card.step}: {card.title}
-                </Link>
-              </li>
+            {proofPoints.map((item) => (
+              <li key={item}>{item}</li>
             ))}
           </ul>
-        </section>
-
-        <section className="validation-panel" aria-label="Trust and proof surfaces">
-          <div>
-            <p className="eyebrow">Trust and Proof</p>
-            <h2>Evidence, moderation, activity and impact stay visible.</h2>
-          </div>
-
-          <div className="card-grid">
-            {snapshot.trustCards.map((card) => (
-              <article className="metric-card" key={card.key}>
-                <p className="eyebrow">{card.title}</p>
-                <p>{card.summary}</p>
-                <Link href={card.href}>Open surface</Link>
-              </article>
-            ))}
-          </div>
         </section>
       </section>
     </main>
