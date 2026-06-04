@@ -1,8 +1,19 @@
-const clubJourney = [
-  'Choose the club you want to support.',
-  'Open the supporter dashboard to see the competition position.',
-  'Follow active missions and submit verified community action.',
-  'Watch approved actions move the club table.',
+const clubNextSteps = [
+  {
+    title: 'New supporter',
+    text: 'Open the supporter dashboard after choosing your club so the journey feels anchored.',
+    href: '/dashboard',
+  },
+  {
+    title: 'Ready to act',
+    text: 'Go to missions when you know which club your community action should support.',
+    href: '/missions',
+  },
+  {
+    title: 'Proof ready',
+    text: 'Submit evidence when the action is already complete and ready for review.',
+    href: '/submit-action',
+  },
 ];
 
 export default function ClubsPage() {
@@ -11,37 +22,64 @@ export default function ClubsPage() {
       <section className="hero-panel" aria-labelledby="clubs-title">
         <header className="hero-panel__header">
           <p className="eyebrow">Club Discovery</p>
-          <h1 id="clubs-title">Find your club, then enter the action journey.</h1>
+          <h1 id="clubs-title">Choose your club first. Missions come next.</h1>
           <p className="hero-copy">
-            Clubs are the public competition anchor. Supporters do not just browse clubs; they
-            choose who they are backing, then move into missions, action submission, and the live
-            league table.
+            Club selection gives every action a team to support. Once a supporter knows their club,
+            the next step is simple: open missions, complete a community action, and submit proof.
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <a className="primary-action" href="/dashboard">
-              Open supporter dashboard
+
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              marginTop: '1.5rem',
+            }}
+          >
+            <a className="primary-action" href="/missions">
+              Next step: view missions
             </a>
-            <a className="secondary-action" href="/missions">
-              See active missions
+            <a className="secondary-action" href="/dashboard">
+              Open supporter dashboard
             </a>
           </div>
         </header>
 
-        <section className="validation-panel" aria-label="Club journey">
+        <section className="validation-panel" aria-label="After choosing a club">
           <div>
-            <p className="eyebrow">What happens after club selection</p>
-            <h2>The club page is the start of supporter participation.</h2>
+            <p className="eyebrow">After choosing a club</p>
+            <h2>The next action should be obvious.</h2>
             <p>
-              The next step is clear: understand the club context, then move into dashboard and
-              missions so community activity can become verified points.
+              If the supporter has selected or recognised their club, they should move into the
+              mission catalogue or dashboard without needing to search.
             </p>
           </div>
 
-          <ul className="validation-list">
-            {clubJourney.map((item) => (
-              <li key={item}>{item}</li>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1rem',
+              marginTop: '1.25rem',
+            }}
+          >
+            {clubNextSteps.map((step) => (
+              <a
+                key={step.title}
+                href={step.href}
+                style={{
+                  display: 'block',
+                  padding: '1rem',
+                  border: '1px solid rgba(148, 163, 184, 0.28)',
+                  borderRadius: '1rem',
+                  textDecoration: 'none',
+                }}
+              >
+                <strong>{step.title}</strong>
+                <p>{step.text}</p>
+              </a>
             ))}
-          </ul>
+          </div>
         </section>
       </section>
     </main>
