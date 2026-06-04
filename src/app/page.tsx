@@ -11,12 +11,12 @@ const processSteps = [
   },
   {
     title: '3. Submit evidence',
-    text: 'Send proof for verification so points can be awarded fairly.',
+    text: 'Evidence is checked before points so every club is treated fairly.',
     href: '/submit-action',
   },
   {
-    title: '4. Move the league table',
-    text: 'Verified actions become points and show visible community impact.',
+    title: '4. Verified points move the table',
+    text: 'Verification happens before points. Proof protects the league table.',
     href: '/leaderboard',
   },
 ];
@@ -34,7 +34,7 @@ const laterRoutes = [
   },
   {
     title: 'Want to see the competition?',
-    text: 'Open the leaderboard after you understand how points are earned.',
+    text: 'Open the leaderboard after you understand how verified points are earned.',
     href: '/leaderboard',
   },
 ];
@@ -82,10 +82,61 @@ export default function HomePage() {
           </section>
         </header>
 
+        <section className="validation-panel" aria-label="Why evidence is required">
+          <div>
+            <p className="eyebrow">Fair points need proof</p>
+            <h2>Proof protects the league table.</h2>
+            <p>
+              Verification happens before points so every club is treated fairly.
+              A mission becomes league points only after evidence is checked.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1rem',
+              marginTop: '1.25rem',
+            }}
+          >
+            <div
+              style={{
+                padding: '1rem',
+                border: '1px solid rgba(148, 163, 184, 0.28)',
+                borderRadius: '1rem',
+              }}
+            >
+              <strong>Mission</strong>
+              <p>Choose a real community action with a clear outcome.</p>
+            </div>
+            <div
+              style={{
+                padding: '1rem',
+                border: '1px solid rgba(148, 163, 184, 0.28)',
+                borderRadius: '1rem',
+              }}
+            >
+              <strong>Evidence</strong>
+              <p>Submit proof so the action can be checked fairly.</p>
+            </div>
+            <div
+              style={{
+                padding: '1rem',
+                border: '1px solid rgba(148, 163, 184, 0.28)',
+                borderRadius: '1rem',
+              }}
+            >
+              <strong>Verification</strong>
+              <p>Verification happens before points to keep the competition trusted.</p>
+            </div>
+          </div>
+        </section>
+
         <section className="validation-panel" aria-label="What happens after the first click">
           <div>
             <p className="eyebrow">After the first click</p>
-            <h2>Then follow the route: mission, evidence, points.</h2>
+            <h2>Then follow the route: mission, evidence, verification, points.</h2>
             <p>
               The first decision is deliberately simple. Choose a club first, then move through the
               community action journey.
